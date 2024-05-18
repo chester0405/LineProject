@@ -1,0 +1,29 @@
+#!/bin/sh
+echo "pre-commit, auto do pint -- By Chris."
+
+files=$(git diff --cached --name-only --diff-filter=ACM -- '*.php');
+
+# 檢查 PHP 命令是否存在
+if command -v php >/dev/null 2>&1; then
+    echo "PHP 已安裝"
+
+    # 是否大於 8.1.0
+    greater_than_81=$(php -r "echo version_compare(PHP_VERSION, '8.1.0');")
+
+    if [ "$greater_than_81" = "1" ]; then
+        echo "PHP 版本大於 8.1.0"
+
+        if test -f "vendor/bin/pint"; then
+            echo "已安裝 pint, 自動執行"
+            vendor/bin/pint $files --config pint.json -vvv
+        else
+            echo "未安裝 pint, 忽略"
+        fi
+    else
+        echo "PHP 版本小於等於 8.1.0"
+    fi
+else
+    echo "PHP 未安裝, 無法自動 pint"
+fi
+
+git add $files
